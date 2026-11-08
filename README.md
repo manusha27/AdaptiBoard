@@ -1,283 +1,278 @@
-# AdaptiBoard
+<div align="center">
 
-**A context-aware AAC communication board you control with your eyes and an EEG headset.**
+# 🧠 AdaptiBoard
 
-AdaptiBoard helps people who can't speak or use their hands to build sentences from picture tiles.
-It runs on two screens:
-- **Board screen:** the symbol board.
-- **Controller screen:** five keys that flicker at different rates. The arrows sit in the four corners (← top-left, ↑ top-right, ↓ bottom-left, → bottom-right) and **OK / Select** is in the middle, so the keys are as far apart as possible.
+### Speak with your eyes. Powered by your brain.
 
-The user looks at a key. A NeuroPawn EEG headset picks up that key's flicker rate in the visual cortex (SSVEP), and the highlight on the board moves like a TV remote. Each chosen word is spoken aloud. The next page of tiles is predicted from the words chosen so far *and* from what people nearby are saying.
+**A brain-computer interface that lets people who can't speak or move build sentences, out loud, just by looking.**
 
-| Smart Board, after someone asked "pizza or pasta?" | Controller, mid-flicker |
-|---|---|
-| ![board](docs/board-context.png) | ![controller](docs/controller-flicker.png) |
-| **More words** (categories → words) | **Needs** (one-select triggers) |
-| ![more words](docs/board-more-words.png) | ![needs](docs/board-needs.png) |
+![React](https://img.shields.io/badge/React_18-20232A?logo=react&logoColor=61DAFB)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
+![BrainFlow](https://img.shields.io/badge/BrainFlow-EEG-8A2BE2)
+![Groq](https://img.shields.io/badge/LLM-Groq_%7C_GPT_%7C_Gemini-F55036)
+![Built at](https://img.shields.io/badge/Built_at-BR41N.IO_%C2%B7_NC_State-CC0000)
 
-Built at BR41N.IO (Neurotech @ NC State) for the NeuroPawn track.
+![AdaptiBoard Smart Board](images/smart-board.png)
 
----
+*Someone nearby asks "Do you want pizza or pasta?" The board hears it, puts **yes / no** and **pizza / pasta** right where the user is looking, and turns the picked words into the sentence "**I want to eat.**"*
 
-## What it does
-
-- **Remote-control navigation using only 5 commands** (↑ ↓ ← → OK). Each key on the controller has its own colour and flicker rate: **Up 6 Hz (yellow), Down 8 Hz (purple), Left 10 Hz (blue), Right 12 Hz (pink), OK 15 Hz (mint)**.
-- **Side menu: Back, Smart Board, More words, Keyboard, Chat, Needs.** Each one opens its own page.
-- **Smart Board, chosen column by column.** It has 4 columns of 4 tiles, read left to right like a sentence: **Questions → People → Actions & Feelings → Food & Things**. Columns are colour-coded (purple, yellow, green, orange) with no text labels.
-  1. Pick a **column** with ← → and open it with **OK**.
-  2. Pick a **tile** with ↑ ↓ and say it with **OK**.
-  3. The highlight jumps to the **next column**, and every column re-predicts from the words chosen so far. After the last column it lands on **Speak**.
-- **More words** (menu page). It opens 12 categories: People, Actions, Feelings, Food & Drink, Places, Things, Questions, Describe, Body, Time, Activities and Little words.
-  - Pick a category, then a word. The word is added, and you go back to the Smart Board with the next column highlighted.
-  - **Back** goes up one level (word page → categories).
-- **Keyboard** (menu page). Type any word letter by letter with the remote, or with a physical keyboard (typing letters anywhere opens this page).
-  - Word suggestions appear as you type ("piz" suggests **pizza**), ranked by what this user uses.
-  - **Add word** puts the typed word into the sentence and stays on the keyboard for the next word. New words are learned.
-- **Grammar fix.** Tiles give base words, so the message bar shows a corrected sentence above them, and **Speak** says the corrected one: "I was walk" → **"I was walking."**, "he want go park" → **"He wants to go to the park."**. GPT does it when a key is set (only accepted if it keeps all the user's words in order); otherwise offline rules in `server/grammar.py` handle the common cases.
-  - **Chat** lists sentences this user has said before, most used first, then ready-made phrases and questions. Everything the user **Speaks** is saved there automatically.
-  - **Needs** holds one-select triggers that *do* something:
-    - Red **emergency** tiles (Chest pain, Can't breathe, Seizure) sound a siren and speak *"Emergency! … Please call nine one one now."* three times. They show a full-screen **Call 911** alert on the board and a red banner on the controller, and send a phone push to the caregiver (optional, via [ntfy](https://ntfy.sh)).
-    - Pink **urgent** tiles (Dizzy, Bad pain, Call nurse, Call family) chime, speak twice and notify the caregiver.
-    - The rest just speak their sentence.
-    - AdaptiBoard never dials 911 itself.
-- **Every choice is spoken immediately** using natural neural voices (free Microsoft Edge voices via `edge-tts`, cached). If those fail, the browser's own voice is used.
-- **Conversation context.** The board laptop's microphone listens to the people around the user. "Do you want pizza or pasta?" puts **yes / no** at the top of Questions and **pizza / pasta** at the top of Food & Things.
-- **Personalised, and gets better with use.** The server learns what this user picks (`server/data/usage.json`):
-  - after each word, and after each pair of words ("I want" → juice);
-  - at each time of day;
-  - which whole sentences they say.
-
-  Those habits rank the Smart Board and are sent to the AI.
-- **AI layer (optional).** With one API key (OpenAI GPT, Gemini, Groq or local Ollama):
-  - the model suggests tiles for every column, using the conversation, the profile *and the user's habits*;
-  - it offers a one-select **"Use sentence"** completion ("I want go park" → "I want to go to the park.").
-
-  Completions that change the user's own words are thrown away.
-- **Safety and accessibility.**
-  - Clean white board with AAC colour coding and text on every tile, the high-legibility Atkinson Hyperlegible font, and ARASAAC pictograms.
-  - Tiles never change under the highlight. OK is ignored while tiles load, and one long gaze can't select twice.
-  - An emergency alert can only be cancelled after 3 s, so the gaze that triggered it can't cancel it.
-  - Flicker needs an epilepsy warning and stops when the tab is hidden. Audio is never stored.
+</div>
 
 ---
 
-## How it fits together
+## 💡 The problem
 
-```
- ┌────────────── LAPTOP A: Board ───────────────┐          ┌──── LAPTOP B: Controller ────┐
- │  Chrome: http://localhost:8000               │          │  Chrome: http://A-IP:8000/   │
- │  - 4x4 board, menu, Speak  (speakers)        │◄──┐  ┌──►│          controller          │
- │  - microphone → conversation context         │   │  │   │  5 flickering keys           │
- │                                              │  WebSocket │                              │
- │  python server/main.py   (port 8000)  ───────┼───┴──┘   └──────────────────────────────┘
- │  - hub between board / controller / decoder  │                   ▲ the user looks here
- │  - predictor + LLM, neural TTS, pictograms   │◄────┐             │
- └──────────────────────────────────────────────┘     │       NeuroPawn headset (USB)
-                                                      │             │
-                                       python eeg/decoder.py  (on A or B, wherever
-                                       the headset is plugged in) → up/down/left/right/ok
-```
+Millions of people live with ALS, locked-in syndrome, cerebral palsy, stroke or spinal-cord injury and **cannot speak or use their hands**. Today's communication boards are often:
 
-| Folder | What's inside |
-|---|---|
-| `server/` | FastAPI server: WebSocket hub, `predictor.py` (Smart Board columns + personal learning), `llm.py` (AI), `needs.py` (Needs triggers), `speech.py` (TTS/STT), `icons.py` (pictograms), `vocab.py` (all words and categories) |
-| `web/` | React + TypeScript + Vite + Framer Motion app. `/` = board, `/controller` = controller |
-| `eeg/` | `decoder.py` (SSVEP → commands), `fbcca.py` (training-free filter-bank CCA), `eeg_bci.py` (the team's headset tools: signal check, clench model) |
+- **Slow:** one word can take a minute.
+- **Static:** the same grid of words no matter what's happening in the room.
+- **Out of reach:** eye trackers and touch screens assume control the user may not have.
 
-**Tech stack:**
-- React 18
-- TypeScript
-- Vite
-- Framer Motion (the gliding mint focus ring)
-- Lucide icons
-- FastAPI + WebSockets
-- BrainFlow
-- NumPy/SciPy
-- edge-tts
-- ARASAAC pictograms
-- Gemini / Groq / OpenAI / Ollama
+The result is that people with plenty to say get left out of the conversation.
 
----
+## ✨ The idea
 
-## Quick test on one laptop (no headset)
+AdaptiBoard combines three things into one board that **thinks ahead for the user**:
 
-Needs **Python 3.10+**, **Node 18+** and **Chrome**.
-
-```bash
-cd adaptiboard
-./start.sh            # Windows: start.bat
-```
-
-The first run installs everything and builds the web app (about 1–2 minutes). Then:
-
-1. Open **http://localhost:8000** in Chrome and click **Start**. This allows sound and asks for the microphone.
-2. Open **http://localhost:8000/controller** in a second window.
-3. Click **Keys only (click to test)**, then click the arrow keys. The board's highlight moves.
-4. The **arrow keys + Enter** on the board itself also work.
-5. **Settings (⚙ on the board) → Simulate the conversation** lets you inject sentences like "Do you want tea or coffee?" when the room is too noisy for the mic.
-
----
-
-## Run on two laptops (the real setup)
-
-Both laptops must be on the **same Wi-Fi**. Campus and guest Wi-Fi often block laptops from talking to each other. If the controller can't connect, use a **phone hotspot** for both laptops.
-
-### Laptop A: Board (runs the server, has the speakers + mic)
-
-```bash
-cd adaptiboard
-./start.sh                    # Windows: start.bat
-```
-
-It prints something like:
-
-```
-  Board (this laptop):  http://localhost:8000/
-  Controller laptop:    http://192.168.1.23:8000/controller
-  EEG decoder:          python eeg/decoder.py --server http://192.168.1.23:8000 ...
-```
-
-- Open **http://localhost:8000** in Chrome on Laptop A and click **Start**.
-- Use `localhost` on this laptop, not the IP. The microphone only works on `localhost`.
-- macOS asks *"Allow Python to accept incoming connections?"*: click **Allow**. On Windows, allow Python through the firewall for **Private networks**.
-
-### Laptop B: Controller (only needs Chrome)
-
-1. Open the **Controller laptop** address printed above, e.g. `http://192.168.1.23:8000/controller`.
-2. The setup panel should show **Server connected · Board connected**.
-3. Test first: click **Keys only (click to test)**, click a few keys, and watch Laptop A's board move.
-4. Press **Full screen**, set the display to **60 Hz**, then **Start flicker** (or press Space). Esc stops it and reopens setup.
-
-### The EEG decoder (on whichever laptop the headset is plugged into)
-
-```bash
-# one-time setup (in the adaptiboard folder)
-python3 -m venv .venv && source .venv/bin/activate      # Windows: .venv\Scripts\activate
-pip install -r eeg/requirements.txt
-
-# find the headset port:  macOS  ls /dev/cu.*     Windows  Device Manager → Ports (COMx)
-# close the NeuroPawn EXG Visualizer first (only one program can use the headset)
-
-python eeg/decoder.py --server http://192.168.1.23:8000 --port /dev/cu.usbmodemXXXX
-#   add --imu if your box says IMU;  use --port COM3 on Windows;  --notch 50 outside the Americas
-```
-
-When the decoder connects, the controller shows **EEG decoder connected**. Start the flicker and look at a key:
-- A mint bar under the key fills as the decoder becomes confident.
-- Once it decides, the key flashes and the board moves.
-- The decoder only decides while the keys are flickering.
-
-**No headset yet?** `python eeg/decoder.py --server http://localhost:8000 --simulate` makes fake EEG. Type `r`, `l`, `u`, `d` or `o` + Enter in that terminal to "look" at a key, and see the full EEG → board path work.
-
-**Getting a clean signal:**
-- Put electrodes over the back of the head: O1, Oz, O2, PO3, POz, PO4.
-- Use conductive paste, and part the hair under each electrode.
-- Check signal quality with `python eeg/eeg_bci.py check --port …`.
-- Check the SSVEP peaks with `python eeg/eeg_bci.py spectrum --port … --freqs 6 8 10 12 15` while looking at one key.
-- **Tuning:**
-  - `--window 4`: seconds of EEG per decision. Longer is steadier but slower.
-  - `--z 3`: evidence needed. Higher means fewer mistakes but slower.
-  - `--ok-strict 1.3`: OK needs extra evidence.
-  - `--ok-rearm 8`: after OK, look away (or keep looking for 8 s) before another OK.
-- **Optional jaw clench as a second OK:** train with `eeg_bci.py record/train` (see its header), then add `--clench-model switch.joblib`.
-
----
-
-## AI and speech settings (optional)
-
-Copy `server/.env.example` to `server/.env` and set **one** key. With no key, the offline predictor still works.
-
-| Option | Cost | Notes |
+| 🧠 **Brain control** | 👂 **Context awareness** | 🤖 **AI that learns you** |
 |---|---|---|
-| `GEMINI_API_KEY` | free for NC State | best default; get a key at aistudio.google.com |
-| `GROQ_API_KEY` | free tier | very fast; also enables server speech-to-text (Whisper) |
-| `OPENAI_API_KEY` | paid | gpt-4o-mini by default |
-| `OLLAMA_MODEL=llama3.2` | free, local, open source | install Ollama and run `ollama pull llama3.2` |
+| Five keys flicker at different rates. The user just *looks* at one, and an EEG headset reads the matching rhythm in their visual cortex (SSVEP). | The board listens to the people nearby and fills itself with the words the user is most likely to need next. | It predicts the next word from the conversation, the time of day and the user's own habits, and fixes grammar before speaking. |
 
-**Caregiver phone alerts (optional):** set `NTFY_TOPIC=some-long-random-name` in `server/.env`, install the free **ntfy** app on the caregiver's phone and subscribe to the same name. Emergency and urgent Needs then push a notification.
-
-The board's status pill shows which AI is active.
-
-**Listening options** (board ⚙ settings):
-- **Auto** (default). Uses Server Whisper when the server has it (a `GROQ_API_KEY` is enough, free), otherwise Browser.
-- **Server Whisper.** Records each spoken sentence, cuts it at the pause after it (~0.8 s) and sends it to Groq / OpenAI / local `faster-whisper`. Silence is never sent. Text appears about a second after the speaker stops.
-- **Browser** (Chrome's built-in recognition, free, live words). It needs Google's servers; if it fails (e.g. a "network" error), the board switches to Server Whisper by itself and shows the error otherwise.
-- **Off.**
-
-**Voices:** 10 neural voices (US/UK/India/Australia, female/male/child), selectable in ⚙ settings. They need internet; without it the board uses the browser voice.
+**Five commands (↑ ↓ ← → OK) and no training** are enough to have a real conversation.
 
 ---
 
-## Controls cheat sheet
+## 🎬 How it works
 
-**Smart Board** (column-wise)
+```mermaid
+flowchart LR
+    A["👀 User looks at a<br/>flickering key"] --> B["🧠 NeuroPawn EEG<br/>(visual cortex)"]
+    B --> C["📈 FBCCA decoder<br/>finds the frequency"]
+    C --> D["🎯 Command<br/>↑ ↓ ← → OK"]
+    D --> E["🟩 Smart Board<br/>moves / selects"]
+    E --> F["🗣️ Spoken aloud<br/>in a natural voice"]
+    G["🎤 Conversation<br/>in the room"] --> H["✨ Whisper + LLM<br/>context & prediction"]
+    H --> E
+```
 
-| Highlight is on… | ↑ / ↓ | ← / → | OK |
-|---|---|---|---|
-| a **column** | ↑ top bar | previous / next column (← from the first opens the menu) | enter the column |
-| a **tile** in a column | previous / next tile (↑ past the first leaves the column) | leave the column, move to the next one | **say it**, add it, jump to the next column |
-
-**Keyboard page**
-
-| Highlight is on… | ↑ / ↓ | ← / → | OK |
-|---|---|---|---|
-| a **keyboard row** | previous / next row (↑ from the top reaches Speak) | ← menu | enter the row |
-| a **key** | leave the row, move up / down | previous / next key | type it (Add word adds the typed word) |
-
-**More words, category pages, Chat, Needs** (row-wise)
-
-| Highlight is on… | ↑ / ↓ | ← / → | OK |
-|---|---|---|---|
-| a **row** | previous / next row (↑ from the top row reaches Speak) | ← opens the menu | enter the row |
-| a **tile** | leave the row and move up / down | previous / next tile (← past the first leaves the row) | choose it |
-
-**Everywhere**
-
-| Highlight is on… | ↑ / ↓ | ← / → | OK |
-|---|---|---|---|
-| the **menu** | previous / next item | → back to the page | open it (Back = up one level) |
-| the **top bar** | ↓ back to the page | Speak · Use sentence · Delete · Clear | do it |
-| an **emergency alert** | – | – | cancel (after 3 s) |
-
-Physical keyboard on the board:
-- **Arrows + Enter** are the five commands.
-- **Letters** open the Keyboard page and type into it; **Enter** adds the typed word.
-- **Space** toggles the flicker on the controller.
+1. **Look.** The controller screen shows five big keys, each flickering at its own rate: ← 10 Hz, ↑ 6 Hz, ↓ 8 Hz, → 12 Hz and **OK 15 Hz**.
+2. **Decode.** Filter-bank CCA reads the EEG every half second and works out which rhythm the brain is following. It needs **no calibration session**.
+3. **Move.** The command moves a gliding highlight on the board, like a TV remote.
+4. **Speak.** Every chosen word is spoken in a natural neural voice. **Speak** reads out the whole sentence, grammar-corrected.
 
 ---
 
-## Troubleshooting
+## 📸 A tour
 
-| Problem | Fix |
+<table>
+<tr>
+<td width="50%">
+
+**🎮 The brain controller**<br/>
+Four arrows in the corners and **OK / Select** in the middle, as far apart as the screen allows, so the brain locks onto one rhythm at a time.
+
+![Controller](images/controller.png)
+
+</td>
+<td width="50%">
+
+![Magic Board](images/magicboard.png)
+
+**🆘 One-look emergencies**<br/>
+"Chest pain" sounds a siren, speaks *"Please call nine one one"* and pages the caregiver's phone. It can't be cancelled by accident.
+
+![Emergency alert](images/emergency.png)
+
+</td>
+</tr>
+<tr>
+<td>
+
+
+---
+
+## 🚀 Features
+
+### 🧠 Brain-computer interface
+- **SSVEP control with five commands.** Every part of the board can be reached with ↑ ↓ ← → OK.
+- **Training-free decoding.** Filter-bank CCA works for a new user straight away.
+- **Frame-locked flicker** synced to the display's refresh rate, with a refresh-rate check built in.
+- **Live feedback bars** under each key show what the decoder is "seeing" in real time.
+- **Guards against mistakes:** a confidence threshold, an extra-strict **OK**, and a re-arm rule, so one long stare can never select twice.
+- **Optional jaw clench** works as a second OK switch, using a trained classifier.
+
+### ✨ Smart Board
+- **Four columns that read like a sentence:** Questions → People → Actions & Feelings → Food & Things.
+- **Predicts as you go.** After every pick, all columns re-predict and the highlight jumps to the next column.
+- **Hears questions.** When someone asks the user something, *yes / no / I don't know* move to the top automatically.
+- **Grammar fixing.** "I was walk" becomes **"I was walking."** and "he want go park" becomes **"He wants to go to the park."**. The AI is only allowed to fix grammar, never change the user's words.
+
+### 👂 Context awareness
+- **Always listening:** speech-to-text with Groq Whisper, OpenAI or Chrome. The board's own voice is ignored.
+- **LLM context extraction** pulls out the topic, likely replies, and the names, foods and places just mentioned.
+- **Tiles never jump** under the highlight. New context waits until the user's next choice.
+
+### 🤖 Learns the user
+- Learns **word pairs and triples**, **time-of-day** habits and **favourite sentences**. In testing, after three uses of "I want juice", *juice* moved to the top.
+- **Chat** keeps every sentence the user has spoken, most used first.
+- A **caregiver profile** (family names, likes, notes) feeds into every prediction.
+
+### 🆘 Safety first
+- **Emergency triggers** sound a siren, speak out loud, show a full-screen *Call 911* alert and send the caregiver a **phone push** via ntfy.
+- **3-second arming** on alerts, so the same gaze that raised one can't dismiss it.
+- **Photosensitivity warning** before any flicker starts, and the flicker stops whenever its tab is hidden.
+
+### ♿ Designed for accessibility
+- Colour coding that follows AAC (augmentative and alternative communication) conventions, ARASAAC pictograms on every word, and the **Atkinson Hyperlegible** font.
+- **10 neural voices** (US / UK / India / Australia; female, male and child).
+- Works **fully offline** with rule-based prediction and grammar when there's no API key.
+
+---
+
+## 🏗️ Architecture
+
+```mermaid
+flowchart TB
+    subgraph Controller["🎮 Controller screen (/controller)"]
+        K["5 flickering keys<br/>React + rAF frame-locked"]
+    end
+    subgraph Headset["🧠 EEG"]
+        N["NeuroPawn Knight board"] --> DEC["decoder.py<br/>BrainFlow + FBCCA"]
+    end
+    subgraph Server["⚡ FastAPI server"]
+        HUB["WebSocket hub"]
+        P["predictor.py<br/>columns + personal learning"]
+        L["llm.py<br/>Groq / GPT / Gemini / Ollama"]
+        G["grammar.py"]
+        S["speech.py<br/>edge-tts + Whisper"]
+    end
+    subgraph Board["🟩 Board screen (/)"]
+        UI["Smart Board · More words · Keyboard · Chat · Needs"]
+        MIC["🎤 microphone"]
+    end
+    K -- "frequencies, on/off" --> HUB
+    DEC -- "↑ ↓ ← → OK" --> HUB
+    HUB --> UI
+    MIC --> S --> L
+    UI <--> P
+    P <--> L
+    UI <--> G
+```
+
+| Layer | Tech |
 |---|---|
-| Controller says "Connecting to server…" | Same Wi-Fi? Correct IP? Firewall allowed? Try a phone hotspot. |
-| No sound | Click **Start** on the board (browsers block audio until a click). Check volume. |
-| "Microphone needs http://localhost" | Open the board on Laptop A via `localhost`, not the IP. |
-| Wrong or slow EEG moves | Check signal quality, add paste, set the screen to 60 Hz, raise `--z`, lengthen `--window`. Confirm frequencies match on the controller and in the decoder log. |
-| `No module named brainflow` | `pip install -r eeg/requirements.txt` in the active venv. |
-| Pictograms missing | They download from ARASAAC on first use (needs internet once, then cached). Emoji are shown meanwhile. |
-| Changed the web code | `cd web && npm run build`, then refresh. For live editing: `npm run dev` → http://localhost:5173. |
+| **Frontend** | React 18, TypeScript, Vite, Framer Motion (the gliding focus ring), Lucide icons |
+| **Backend** | Python, FastAPI, WebSockets, httpx |
+| **EEG** | NeuroPawn Knight board, BrainFlow, NumPy / SciPy, filter-bank CCA, scikit-learn |
+| **AI** | Groq (Llama 3.3 70B + Whisper), OpenAI, Gemini or local Ollama: pick one |
+| **Speech** | Microsoft Edge neural voices (`edge-tts`), Whisper speech-to-text |
+| **Symbols** | ARASAAC pictograms |
+
+```
+adaptiboard/
+├── server/     FastAPI hub, predictor, LLM layer, grammar, speech, Needs, vocabulary
+├── web/        React app: "/" = board, "/controller" = flicker controller
+├── eeg/        decoder.py (SSVEP → commands), fbcca.py, headset tools
+└── images/     screenshots
+```
 
 ---
 
-## Honest limitations
+## ⚡ Quick start
 
-- **Frequency choice:** 12 Hz is exactly double 6 Hz, so the decoder can mistake Up for Right. On simulated EEG the decoder (FBCCA, 4 s window) got:
+You need **Python 3.10+**, **Node 18+** and **Chrome**.
 
-  | Up frequency (rest 8 / 10 / 12 / 15 Hz) | Accuracy, strong signal | Accuracy, weak signal |
-  |---|---|---|
-  | **6 Hz** (default) | 83% | 55% |
-  | **6.67 Hz** | 95% | 64% |
+```bash
+git clone https://github.com/manusha27/AdaptiBoard.git
+cd AdaptiBoard
+./start.sh                 # Windows: start.bat (installs everything on the first run)
+```
 
-  If Up and Right get confused with the real headset, set Up to **6.67** on the controller's setup panel (the decoder follows automatically).
-- The EEG path was tested end to end with simulated EEG and with the controller's manual keys. Real-headset accuracy depends on electrode contact, the person, the screen and the room. **Measure it and report real numbers** (correct commands, seconds per selection, accidental OKs).
-- SSVEP flicker isn't suitable for people with photosensitive epilepsy.
-- Prediction quality depends on the AI provider. The offline predictor is rule-based plus personal learning.
-- An always-on microphone raises privacy concerns: tell everyone in the room, and use the Mic → Off setting when needed.
-- ARASAAC pictograms are licensed **CC BY-NC-SA** (non-commercial).
+Then:
+1. Open **http://localhost:8000** and click **Start**.
+2. Open **http://localhost:8000/controller** in a second window, then click **Keys only** to drive the board with your mouse.
 
-## Credits
+**Try it without a headset:**
+```bash
+source .venv/bin/activate
+python eeg/decoder.py --server http://localhost:8000 --simulate
+# type u / d / l / r / o + Enter to "look" at a key
+```
 
-- Pictograms: Sergio Palao, [ARASAAC](https://arasaac.org), Government of Aragon (CC BY-NC-SA 4.0).
-- `eeg/fbcca.py` is adapted from [NeuroKnights](https://github.com/alexyurchuk/NeuroKnights) (MIT).
-- The headset is a NeuroPawn Knight board, connected via BrainFlow.
+### 🔑 Turn on the AI (free)
+
+Create `server/.env` and add **one** key:
+```bash
+GROQ_API_KEY=gsk_...        # free at console.groq.com: LLM + speech-to-text
+# or GEMINI_API_KEY=...     # free at aistudio.google.com
+# or OPENAI_API_KEY=...     # paid
+# or OLLAMA_MODEL=llama3.2  # free, runs locally
+NTFY_TOPIC=my-secret-topic  # optional: caregiver phone alerts via the ntfy app
+```
+
+### 🧠 Connect the EEG headset
+
+```bash
+ls /dev/cu.*                                    # find the headset (macOS)
+python eeg/decoder.py --server http://localhost:8000 --port /dev/cu.usbserial-XXXX -v
+```
+- Put electrodes over the back of the head (**O1, Oz, O2, PO3, POz, PO4**).
+- Make the controller full screen at 60 Hz and click **Start flicker**.
+- Look at a key for a few seconds.
+
+<details>
+<summary><b>🖥️ Two-laptop setup</b></summary>
+
+Run the server on the board laptop. `start.sh` prints the controller address (`http://<board-IP>:8000/controller`); open it in Chrome on the second laptop.
+
+Campus Wi-Fi such as eduroam often blocks laptops from connecting to each other. Use a **phone hotspot**, `cloudflared tunnel --url http://localhost:8000`, or Tailscale instead. Keep the board on `localhost` so the microphone works.
+
+</details>
+
+<details>
+<summary><b>🎮 Controls cheat sheet</b></summary>
+
+| Highlight is on… | ↑ / ↓ | ← / → | OK |
+|---|---|---|---|
+| a Smart Board **column** | ↑ top bar | previous / next column | enter the column |
+| a **tile** in a column | previous / next tile | other columns | **say it** and jump to the next column |
+| a **row** (More words, Chat, Needs, Keyboard) | previous / next row | ← menu | enter the row |
+| a **tile / key** in a row | leave the row | previous / next tile | choose it |
+| the **menu** | previous / next page | → back to the page | open it |
+| the **top bar** | ↓ back to the page | Speak · Use sentence · Delete · Clear | do it |
+| an **emergency alert** | – | – | dismiss (after 3 s) |
+
+On a physical keyboard, the arrows + Enter are the five commands, and letters type straight into the Keyboard page.
+
+</details>
+
+<details>
+<summary><b>🎛️ Decoder tuning</b></summary>
+
+| Flag | What it does |
+|---|---|
+| `--window 4` | seconds of EEG per decision (longer = steadier, slower) |
+| `--z 3` | evidence needed (higher = fewer mistakes) |
+| `--ok-strict 1.3` | extra evidence required for OK |
+| `--notch 60` | mains frequency (50 outside the Americas) |
+| `--imu` | the headset box says IMU |
+| `--clench-model file.joblib` | jaw clench as a second OK |
+
+Frequencies can be changed live in the controller's setup panel, and the decoder follows automatically.
+
+</details>
+
+---
+
+## 👥 Team
+
+Built at **BR41N.IO, Neurotech @ NC State**, for the **NeuroPawn** track.
+
+- **Swetha Manivasagam:** [@SwethaatGH](https://github.com/SwethaatGH)
+- [@manusha27](https://github.com/manusha27)
+
+
+**Everyone deserves a voice in the conversation. 💬**
+
+</div>
