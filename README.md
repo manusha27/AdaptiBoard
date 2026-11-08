@@ -13,8 +13,6 @@
 ![Groq](https://img.shields.io/badge/LLM-Groq_%7C_GPT_%7C_Gemini-F55036)
 ![Built at](https://img.shields.io/badge/Built_at-BR41N.IO_%C2%B7_NC_State-CC0000)
 
-![AdaptiBoard Smart Board](images/smart-board.png)
-
 *Someone nearby asks "Do you want pizza or pasta?" The board hears it, puts **yes / no** and **pizza / pasta** right where the user is looking, and turns the picked words into the sentence "**I want to eat.**"*
 
 </div>
@@ -72,17 +70,17 @@ flowchart LR
 **🎮 The brain controller**<br/>
 Four arrows in the corners and **OK / Select** in the middle, as far apart as the screen allows, so the brain locks onto one rhythm at a time.
 
-![Controller](images/controller.png)
+![Controller](controller.png)
 
 </td>
 <td width="50%">
 
-![Magic Board](images/magicboard.png)
+![Magic Board](magicboard.png)
 
 **🆘 One-look emergencies**<br/>
 "Chest pain" sounds a siren, speaks *"Please call nine one one"* and pages the caregiver's phone. It can't be cancelled by accident.
 
-![Emergency alert](images/emergency.png)
+![Emergency alert](emergency.png)
 
 </td>
 </tr>
