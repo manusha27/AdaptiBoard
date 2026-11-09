@@ -270,8 +270,8 @@ Built at **BR41N.IO, Neurotech @ NC State**, for the **NeuroPawn** track.
 - **Swetha Manivasagam:** [@SwethaatGH](https://github.com/SwethaatGH)
 - [@manusha27](https://github.com/manusha27)
 - Aarush Dixit (https://github.com/aarushdixit)
-- **Jenna Chonillo**[@InvisaC](https://github.com/InvisaC)
-- **Sina Baghbanijam**(SBaghba)[https://github.com/sbaghba]
+- **Jenna Chonillo**@ (InvisaC)[https://github.com/InvisaC]
+- **Sina Baghbanijam** (SBaghba)[https://github.com/sbaghba]
 - **Myles Thomas** 
 
 
