@@ -272,7 +272,7 @@ Built at **BR41N.IO, Neurotech @ NC State**, for the **NeuroPawn** track.
 - Aarush Dixit (https://github.com/aarushdixit)
 - **Jenna Chonillo**  [InvisaC](https://github.com/InvisaC)
 - **Sina Baghbanijam**  [SBaghba](https://github.com/sbaghba)
-- **Myles Thomas** 
+- **Myles Thomas** [Ser-astro](https://github.com/Ser-Astro)
 
 
 **Everyone deserves a voice in the conversation. 💬**
