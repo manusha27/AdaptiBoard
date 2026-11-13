@@ -12,6 +12,9 @@
 ![BrainFlow](https://img.shields.io/badge/BrainFlow-EEG-8A2BE2)
 ![Groq](https://img.shields.io/badge/LLM-Groq_%7C_GPT_%7C_Gemini-F55036)
 ![Built at](https://img.shields.io/badge/Built_at-BR41N.IO_%C2%B7_NC_State-CC0000)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+**[▶️ Watch the Video Demo](https://drive.google.com/file/d/1G4_jeY0sYnp-ELZUFkQeS49_ItIaohyD/view)**
 
 *Someone nearby asks "Do you want pizza or pasta?" The board hears it, puts **yes / no** and **pizza / pasta** right where the user is looking, and turns the picked words into the sentence "**I want to eat.**"*
 
@@ -64,29 +67,29 @@ flowchart LR
 ## 📸 A tour
 
 <table>
-<tr>
-<td width="50%">
-
-**🎮 The brain controller**<br/>
-Four arrows in the corners and **OK / Select** in the middle, as far apart as the screen allows, so the brain locks onto one rhythm at a time.
-
-![Controller](controller.png)
-
-</td>
-<td width="50%">
-
-![Magic Board](magicboard.png)
-
-**🆘 One-look emergencies**<br/>
-"Chest pain" sounds a siren, speaks *"Please call nine one one"* and pages the caregiver's phone. It can't be cancelled by accident.
-
-![Emergency alert](emergency.png)
-
-</td>
-</tr>
-<tr>
-<td>
-
+  <tr>
+    <td width="50%" valign="top">
+      <b>🎮 The brain controller</b><br/>
+      Four arrows in the corners and <b>OK / Select</b> in the middle, as far apart as the screen allows, so the brain locks onto one rhythm at a time.
+      <br/><br/>
+      <img src="controller.png" alt="Controller" />
+    </td>
+    <td width="50%" valign="top">
+      <b>✨ The Smart Board</b><br/>
+      Four color-coded columns that dynamically adapt to the room's conversation and predict your next word.
+      <br/><br/>
+      <img src="magicboard.png" alt="Magic Board" />
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" align="center">
+      <b>🆘 One-look emergencies</b><br/>
+      "Chest pain" sounds a siren, speaks <i>"Please call nine one one"</i> and pages the caregiver's phone. It can't be cancelled by accident.
+      <br/><br/>
+      <img src="emergency.png" alt="Emergency alert" width="60%" />
+    </td>
+  </tr>
+</table>
 
 ---
 
@@ -104,7 +107,7 @@ Four arrows in the corners and **OK / Select** in the middle, as far apart as th
 - **Four columns that read like a sentence:** Questions → People → Actions & Feelings → Food & Things.
 - **Predicts as you go.** After every pick, all columns re-predict and the highlight jumps to the next column.
 - **Hears questions.** When someone asks the user something, *yes / no / I don't know* move to the top automatically.
-- **Grammar fixing.** "I was walk" becomes **"I was walking."** and "he want go park" becomes **"He wants to go to the park."**. The AI is only allowed to fix grammar, never change the user's words.
+- **Grammar fixing.** "I was walk" becomes **"I was walking"** and "he want go park" becomes **"He wants to go to the park."** The AI is only allowed to fix grammar, never change the user's words.
 
 ### 👂 Context awareness
 - **Always listening:** speech-to-text with Groq Whisper, OpenAI or Chrome. The board's own voice is ignored.
@@ -167,12 +170,14 @@ flowchart TB
 | **Speech** | Microsoft Edge neural voices (`edge-tts`), Whisper speech-to-text |
 | **Symbols** | ARASAAC pictograms |
 
-```
+```text
 adaptiboard/
-├── server/     FastAPI hub, predictor, LLM layer, grammar, speech, Needs, vocabulary
-├── web/        React app: "/" = board, "/controller" = flicker controller
-├── eeg/        decoder.py (SSVEP → commands), fbcca.py, headset tools
-└── images/     screenshots
+├── server/          FastAPI hub, predictor, LLM layer, grammar, speech, Needs, vocabulary
+├── web/             React app: "/" = board, "/controller" = flicker controller
+├── eeg/             decoder.py (SSVEP → commands), fbcca.py, headset tools
+├── controller.png   Controller screenshot
+├── magicboard.png   Board screenshot
+└── emergency.png    Emergency alert screenshot
 ```
 
 ---
@@ -212,10 +217,14 @@ NTFY_TOPIC=my-secret-topic  # optional: caregiver phone alerts via the ntfy app
 ### 🧠 Connect the EEG headset
 
 ```bash
-ls /dev/cu.*                                    # find the headset (macOS)
+# Find your headset serial port:
+ls /dev/cu.*               # macOS
+# ls /dev/ttyUSB*          # Linux
+# Check Device Manager     # Windows (e.g., COM3)
+
 python eeg/decoder.py --server http://localhost:8000 --port /dev/cu.usbserial-XXXX -v
 ```
-- Put electrodes over the back of the head (**O1, Oz, O2, PO3, POz, PO4**).
+- Put electrodes over the back of the head (**O1, Oz, O2, PO3, POz, PO4**) with reference/bias on the earlobes or mastoids.
 - Make the controller full screen at 60 Hz and click **Start flicker**.
 - Look at a key for a few seconds.
 
@@ -267,13 +276,20 @@ Frequencies can be changed live in the controller's setup panel, and the decoder
 
 Built at **BR41N.IO, Neurotech @ NC State**, for the **NeuroPawn** track.
 
-- **Swetha Manivasagam:** [@SwethaatGH](https://github.com/SwethaatGH)
-- **Manusha Malgareddy** [@manusha27](https://github.com/manusha27)
-- Aarush Dixit (https://github.com/aarushdixit)
-- **Jenna Chonillo**  [InvisaC](https://github.com/InvisaC)
-- **Sina Baghbanijam**  [SBaghba](https://github.com/sbaghba)
-- **Myles Thomas** [Ser-astro](https://github.com/Ser-Astro)
+- **Swetha Manivasagam** — [@SwethaatGH](https://github.com/SwethaatGH)
+- **Manusha Malgareddy** — [@manusha27](https://github.com/manusha27)
+- **Aarush Dixit** — [@aarushdixit](https://github.com/aarushdixit)
+- **Jenna Chonillo** — [@InvisaC](https://github.com/InvisaC)
+- **Sina Baghbanijam** — [@SBaghba](https://github.com/sbaghba)
+- **Myles Thomas** — [@Ser-astro](https://github.com/Ser-Astro)
 
+---
+
+## 📄 License
+
+This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
+
+<div align="center">
 
 **Everyone deserves a voice in the conversation. 💬**
 
